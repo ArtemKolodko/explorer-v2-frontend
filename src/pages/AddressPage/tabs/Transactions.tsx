@@ -412,7 +412,9 @@ export function Transactions(props: {
   const [cachedTotalElements, setCachedTotalElements] = useState<{ [name: string]: number}>({})
   const [filter, setFilter] = useState<{ [name: string]: Filter }>(initFilterState);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isRpcTxsLoaded, setRpcTxsLoaded] = useState<boolean>(false);
   const prevType = usePrevious(props.type);
+  const [abortControllers, setAbortControllers] = useState<{ count: any, rpcTxs: any }>({ count: null, rpcTxs: null })
 
   // @ts-ignore
   let { id } = useParams();
@@ -422,50 +424,72 @@ export function Transactions(props: {
 
   const { limit = 10, offset = 0 } = filter[props.type];
 
+  const enrichRelatedTxs = async (txs: RelatedTransaction[]) => {
+    // for transactions we display call method if any
+    if (props.type === "transaction") {
+      const methodSignatures = await Promise.all(
+        txs.map((tx: any) => {
+          return tx.input && tx.input.length > 10
+            ? getByteCodeSignatureByHash([tx.input.slice(0, 10)])
+            : Promise.resolve([]);
+        })
+      );
+      txs = txs.map((l, i) => ({
+        ...l,
+        signatures: methodSignatures[i],
+      }));
+    }
+
+    return txs.map((tx: any) => {
+      tx.relatedAddress = id;
+      return tx;
+    });
+  }
+
+  const loadTxsFromNode = async () => {
+    setRpcTxsLoaded(false)
+    try {
+      const pageSize = limit
+      const pageIndex = Math.floor(offset / limit)
+      const params = [{ address: id, pageIndex, pageSize }]
+      let txs = []
+      if (abortControllers.rpcTxs) {
+        abortControllers.rpcTxs.abort()
+      }
+      const controller = new AbortController();
+      const signal = controller.signal;
+      setAbortControllers({...abortControllers, rpcTxs: controller})
+      txs = props.type === 'transaction'
+        ? await hmyv2_getTransactionsHistory(params, signal)
+        : await hmyv2_getStakingTransactionsHistory(params, signal)
+      txs = txs.map(tx => mapBlockchainTxToRelated(tx))
+      txs = await enrichRelatedTxs(txs)
+      setRpcTxsLoaded(true)
+      setRelatedTrxs(txs);
+      setCachedTxs({ ...cachedTxs, [props.type]: txs });
+    } catch(e) {
+      console.error('Cannot get node txs', (e as Error).message)
+    }
+  }
+
   const loadTransactions = async () => {
     setIsLoading(true)
     try {
-      let txs = []
-      if (props.type ==='transaction' || props.type === 'staking_transaction') {
-        const pageSize = limit
-        const pageIndex = Math.floor(offset / limit)
-        const params = [{ address: id, pageIndex, pageSize }]
-        txs = props.type ==='transaction'
-          ? await hmyv2_getTransactionsHistory(params)
-          : await hmyv2_getStakingTransactionsHistory(params)
-        txs = txs.map(tx => mapBlockchainTxToRelated(tx))
-      } else {
-        txs = await getRelatedTransactionsByType([
-          0,
-          id,
-          props.type,
-          filter[props.type],
-        ]);
+      const isRpcType = props.type ==='transaction' || props.type === 'staking_transaction'
+      if (isRpcType) {
+        loadTxsFromNode()
       }
-      // for transactions we display call method if any
-      if (props.type === "transaction") {
-        const methodSignatures = await Promise.all(
-          txs.map((tx: any) => {
-            return tx.input && tx.input.length > 10
-              ? getByteCodeSignatureByHash([tx.input.slice(0, 10)])
-              : Promise.resolve([]);
-          })
-        );
+      let txs = await getRelatedTransactionsByType([
+        0,
+        id,
+        props.type,
+        filter[props.type],
+      ]);
 
-        txs = txs.map((l, i) => ({
-          ...l,
-          signatures: methodSignatures[i],
-        }));
-      }
-
-      txs = txs.map((tx: any) => {
-        tx.relatedAddress = id;
-        return tx;
-      });
-
-      setRelatedTrxs(txs);
-      if (props.type === 'transaction' || props.type === 'staking_transaction') {
-        setCachedTxs({ ...cachedTxs, [props.type]: txs });
+      txs = await enrichRelatedTxs(txs)
+      // temporary set txs until RPC txs is loaded
+      if (!isRpcType || (isRpcType && !isRpcTxsLoaded)) {
+        setRelatedTrxs(txs);
       }
     } catch (e) {
       console.error('Cannot get or parse txs:', e);
@@ -487,9 +511,15 @@ export function Transactions(props: {
           if (typeof cachedTotalElements[props.type] !== 'undefined' && id === prevId) {
             setTotalElements(cachedTotalElements[props.type])
           } else {
+            if (abortControllers.count) {
+              abortControllers.count.abort()
+            }
+            const controller = new AbortController();
+            const signal = controller.signal;
+            setAbortControllers({...abortControllers, count: controller})
             const count = props.type ==='transaction'
-              ? await hmyv2_getTransactionsCount(id)
-              : await hmyv2_getStakingTransactionsCount(id)
+              ? await hmyv2_getTransactionsCount(id, signal)
+              : await hmyv2_getStakingTransactionsCount(id, signal)
             setTotalElements(count)
             setCachedTotalElements({ ...cachedTotalElements, [props.type]: count })
           }
