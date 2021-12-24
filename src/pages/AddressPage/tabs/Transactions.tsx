@@ -420,7 +420,10 @@ export function Transactions(props: {
   let { id } = useParams();
   id = `${id}`.toLowerCase();
   id = id.slice(0, 3) === "one" ? getAddress(id).basicHex : id;
+
   const prevId = usePrevious(id);
+  const isFirstLoad = prevId !== id
+  const isRpcType = props.type ==='transaction' || props.type === 'staking_transaction'
 
   const { limit = 10, offset = 0 } = filter[props.type];
 
@@ -475,21 +478,25 @@ export function Transactions(props: {
   const loadTransactions = async () => {
     setIsLoading(true)
     try {
-      const isRpcType = props.type ==='transaction' || props.type === 'staking_transaction'
       if (isRpcType) {
-        loadTxsFromNode()
+        if (isFirstLoad) {
+          loadTxsFromNode()
+        } else {
+          await loadTxsFromNode()
+        }
       }
-      let txs = await getRelatedTransactionsByType([
-        0,
-        id,
-        props.type,
-        filter[props.type],
-      ]);
-
-      txs = await enrichRelatedTxs(txs)
-      // temporary set txs until RPC txs is loaded
-      if (!isRpcType || (isRpcType && !isRpcTxsLoaded)) {
-        setRelatedTrxs(txs);
+      if(!isRpcType || (isRpcType && isFirstLoad)) {
+        let txs = await getRelatedTransactionsByType([
+          0,
+          id,
+          props.type,
+          filter[props.type],
+        ]);
+        txs = await enrichRelatedTxs(txs)
+        // temporary set txs until RPC txs is loaded
+        if (!isRpcType || (isRpcType && !isRpcTxsLoaded)) {
+          setRelatedTrxs(txs);
+        }
       }
     } catch (e) {
       console.error('Cannot get or parse txs:', e);
@@ -507,7 +514,7 @@ export function Transactions(props: {
   useEffect(() => {
     const getTxsCount = async () => {
       try {
-        if (props.type ==='transaction' || props.type === 'staking_transaction') {
+        if (isRpcType) {
           if (typeof cachedTotalElements[props.type] !== 'undefined' && id === prevId) {
             setTotalElements(cachedTotalElements[props.type])
           } else {
@@ -585,7 +592,7 @@ export function Transactions(props: {
         minWidth="1266px"
         hideCounter
         rowDetails={props.rowDetails}
-        showPages={totalElements > 0 && (props.type ==='transaction' || props.type === 'staking_transaction')}
+        showPages={totalElements > 0 && isRpcType}
       />
     </Box>
   );
