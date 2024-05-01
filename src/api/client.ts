@@ -239,3 +239,9 @@ export async function getTokenERC1155AssetDetails(address: string, tokenID: stri
     // todo fix on backend
     return res && res[0]
 }
+
+export async function getOneTokenPrice() {
+  const res = await transport("getOneTokenPrice", [])
+  // todo fix on backend
+  return res
+}
