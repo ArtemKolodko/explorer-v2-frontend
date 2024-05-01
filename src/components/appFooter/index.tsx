@@ -1,11 +1,11 @@
 import React from 'react'
-import { Box, Text } from "grommet"
+import {Anchor, Box, Text} from "grommet"
 import { Group, Medium, Twitter } from 'grommet-icons'
 import styled, {CSSProperties} from 'styled-components';
 
 import { TelegramIcon, DiscordIcon, SubstackIcon } from 'src/components/ui/icons'
 
-const IconAhchor = styled.a`
+const IconAhchor = styled(Anchor)`
   opacity: 0.9;
   transition: 0.17s ease all;
   
