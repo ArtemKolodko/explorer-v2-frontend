@@ -1,5 +1,5 @@
 import React from "react";
-import { ThemeContext } from "styled-components";
+import {DefaultTheme, ThemeContext} from "styled-components";
 
 interface IIconProps {
   size?: string;
@@ -7,7 +7,7 @@ interface IIconProps {
 }
 
 export function TelegramIcon(props: IIconProps) {
-  const theme = React.useContext(ThemeContext);
+  const theme = React.useContext(ThemeContext) as DefaultTheme
   const { size = "24px", color = theme.global.palette.Grey } = props;
 
   return (
@@ -30,7 +30,7 @@ export function TelegramIcon(props: IIconProps) {
 }
 
 export function DiscordIcon(props: IIconProps) {
-  const theme = React.useContext(ThemeContext);
+  const theme = React.useContext(ThemeContext) as DefaultTheme
   const { size = "24px", color = theme.global.palette.Grey } = props;
 
   return (
@@ -56,7 +56,7 @@ export function DiscordIcon(props: IIconProps) {
 }
 
 export function LatencyIcon(props: IIconProps) {
-  const theme = React.useContext(ThemeContext);
+  const theme = React.useContext(ThemeContext) as DefaultTheme
   const { size = "24px", color = theme.global.palette.Grey } = props;
 
   return (
@@ -106,7 +106,7 @@ export function LatencyIcon(props: IIconProps) {
 // }
 
 export function GearIcon(props: IIconProps) {
-  const theme = React.useContext(ThemeContext);
+  const theme = React.useContext(ThemeContext) as DefaultTheme
   const { size = "24px", color = theme.global.palette.Grey } = props;
 
   return (
@@ -122,7 +122,7 @@ export function GearIcon(props: IIconProps) {
 }
 
 export function SubstackIcon(props: IIconProps) {
-  const theme = React.useContext(ThemeContext);
+  const theme = React.useContext(ThemeContext) as DefaultTheme
   const { size = "24px", color = theme.global.palette.Grey } = props;
 
   return (
