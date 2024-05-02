@@ -12,10 +12,12 @@ export function ONE_USDT_Rate() {
       .then(res => res.prices) // for coingecko, delete for binance
         .then((res) => {
           console.log('price', {res})
-          res.forEach((t: Array<string | number>) => {
-            rates[String(t[0])] = Number(t[1]);
-          });
-          window.localStorage.setItem('ONE_USDT_rates', JSON.stringify(rates))
+          if(res) {
+            res.forEach((t: Array<string | number>) => {
+              rates[String(t[0])] = Number(t[1]);
+            });
+            window.localStorage.setItem('ONE_USDT_rates', JSON.stringify(rates))
+          }
         });
     };
     getRates();
