@@ -7,7 +7,7 @@ interface IIconProps {
 }
 
 export function TelegramIcon(props: IIconProps) {
-  const theme = React.useContext(ThemeContext) as DefaultTheme
+  const theme = React.useContext(ThemeContext)
   const { size = "24px", color = theme.global.palette.Grey } = props;
 
   return (
@@ -30,7 +30,7 @@ export function TelegramIcon(props: IIconProps) {
 }
 
 export function DiscordIcon(props: IIconProps) {
-  const theme = React.useContext(ThemeContext) as DefaultTheme
+  const theme = React.useContext(ThemeContext)
   const { size = "24px", color = theme.global.palette.Grey } = props;
 
   return (
@@ -56,7 +56,7 @@ export function DiscordIcon(props: IIconProps) {
 }
 
 export function LatencyIcon(props: IIconProps) {
-  const theme = React.useContext(ThemeContext) as DefaultTheme
+  const theme = React.useContext(ThemeContext)
   const { size = "24px", color = theme.global.palette.Grey } = props;
 
   return (
@@ -106,7 +106,7 @@ export function LatencyIcon(props: IIconProps) {
 // }
 
 export function GearIcon(props: IIconProps) {
-  const theme = React.useContext(ThemeContext) as DefaultTheme
+  const theme = React.useContext(ThemeContext)
   const { size = "24px", color = theme.global.palette.Grey } = props;
 
   return (
@@ -122,7 +122,7 @@ export function GearIcon(props: IIconProps) {
 }
 
 export function SubstackIcon(props: IIconProps) {
-  const theme = React.useContext(ThemeContext) as DefaultTheme
+  const theme = React.useContext(ThemeContext)
   const { size = "24px", color = theme.global.palette.Grey } = props;
 
   return (

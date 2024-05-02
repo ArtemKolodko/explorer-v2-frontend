@@ -306,7 +306,7 @@ class VerifyContractBase extends React.Component<
                   max="100000"
                   multiple
                   onChange={event => {
-                    if (!event.target.files) return;
+                    if (!event?.target.files) return;
                     const fileList = event.target.files;
                     const files = [];
                     for (let i = 0; i < fileList?.length; i += 1) {
